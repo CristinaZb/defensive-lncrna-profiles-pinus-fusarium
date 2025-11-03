@@ -28,11 +28,11 @@ If you use this code, please cite this repository and the related manuscript (wh
 
 ## Pipeline (at a glance)
 
-1) **Quality control** → [`scripts/fastqc.sh`](scripts/fastqc.sh)
+## **Quality control** → [`scripts/fastqc.sh`](scripts/fastqc.sh)
 
 We assessed read quality with FastQC on all raw FASTQ files (see scripts/fastqc.sh). 
 
-2) **Trimming** → [`scripts/trimming.sh`](scripts/trimming.sh)  
+## **Trimming** → [`scripts/trimming.sh`](scripts/trimming.sh)  
 
 Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10). Post-trim QC was re-run to confirm improvement. All auxiliary *_2u.fastq.gz (unpaired R2) files were found empty and were removed. See scripts/trimming.sh
 
