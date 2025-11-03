@@ -65,9 +65,9 @@ Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed wi
    - Sorting by coordinates → [`scripts/04_4_samtools_sort.sh`](scripts/04_4_samtools_sort.sh)
    - Removing duplicates → [`scripts/04_5_samtools_rmdup.sh`](scripts/04_5_samtools_rmdup.sh)
 
-7) **Pine assembly**
+##  **Pine assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-guided mode for the host (`Pita.2_01.gtf.gz`; [`scripts/05_stringtie_pita.sh`](scripts/05_stringtie_pita.sh)) and without GTF for the pathogen [`scripts/05_stringtie_fc.sh`](scripts/05_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh).
+Per-sample BAMs were assembled with StringTie in reference-guided mode for the pine species (`Pita.2_01.gtf.gz`; [`scripts/05_stringtie_pita.sh`](scripts/05_stringtie_pita.sh)). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh).
 
 Number of assembled transcripts in each GTF:
 
@@ -77,12 +77,18 @@ awk '$3=="transcript"' ${file}_transcripts.gtf | wc -l
 
 In order to get a fasta file with the sequences of the assembled transcripts of each organism, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_gffread_pine.sh`](scripts/05_gffread_pine.sh) and [`scripts/05_gffread_fc.sh`](scripts/05_gffread_fc.sh)
 
+
+
 and compared to the reference with gffcompare to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See scripts/28_stringtie_merge.sh
 
 
 
 
-9) **Pathogen assembly**
+##  **Pathogen assembly**
+
+Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_stringtie_fc.sh`](scripts/05_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh)
+
+
 10) **Pine comparation** 
 11) **Identification of long non-coding RNAs**  
    - Step 1:  → [`scripts/26_counts_featurecounts.sh`](scripts/26_counts_featurecounts.sh)  
