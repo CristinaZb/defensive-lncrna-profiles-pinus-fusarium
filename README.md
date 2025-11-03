@@ -28,9 +28,11 @@ Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host
 
 Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P. pinea_ to Ptaeda2.0, whereas pathogen alignments were expectedly low (<~4%) given plant-dominant libraries.
 
+## **SAM processing**
 
-6) **SAM processing**
-   - SAM to BAM → [`scripts/26_counts_featurecounts.sh`](scripts/26_counts_featurecounts.sh) 
+Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed with samtools. Basic alignment QC was recorded with samtools flagstat. Intermediate SAM files were removed to save space. Host and pathogen BAMs are kept separately (one per sample).
+
+   - SAM to BAM → [`scripts/samtools_stgtie.sh`](scripts/samtools_stgtie.sh) 
    - Sorting BAM by name
    - Fixing BAM by removing duplicates
    - Sorting by coordinates
