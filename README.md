@@ -124,12 +124,25 @@ grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
 
 **2) Structural comparison against a “known transcripts” GTF**
 
-Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files.
+Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/scripts/05_5_gffcompare_fc.sh)
 
-awk '{print $1}' fusarium.loci | wc -l           # 10,486 loci
-awk '{print $1}' fusarium.loci | sort -u | wc -l # 10,486 unique loci
-# The .tracking third column indicates closest reference match
+Number of loci:
+
+```bash
+awk '{print $1}' fusarium.loci | wc -l 
+```
+
+Number of unique loci:
+
+```bash
+awk '{print $1}' fusarium.loci | sort -u | wc -l
+```
+
+The .tracking third column indicates closest reference match
+
+```bash
 awk '{print $4}' fusarium.tracking | sort | uniq -c
+```
 
 
 
