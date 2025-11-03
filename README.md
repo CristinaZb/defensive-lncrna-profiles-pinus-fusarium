@@ -83,7 +83,11 @@ Check the number of transcripts in the FASTA files:
 grep '^>' transcripts_${spp}_consensus.fa | wc -l
 ```
 
-and compared to the reference with gffcompare to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering.
+Compare the _de novo_ transcripts to the reference GTF using ``gffcompare`` to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See [`scripts/05_4_gffcompare_pine.sh`](scripts/05_4_gffcompare_pine.sh)
+
+
+
+
 
 
 
@@ -122,6 +126,26 @@ grep -c '^>' entap_outfiles/final_results/final_annotated.fnn
 grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
 ```
 
+Extract the transcripts that have been annotated:
+```bash
+grep "^>" final_annotated.fnn > list_annotated.txt
+```
+Change the format so that it is recognizable in the GTF: 
+Remove the “>” symbol at the beginning of the row, and add ‘transcript_id’, quotation marks, and “;” at the end.
+```bash
+awk '{gsub(/^>/, ""); print "transcript_id \"" $0 "\";"}' list_annotated.txt > list_annotated_2.txt
+```
+Keep only these transcripts:
+```bash
+grep -Ff list_annotated_2.txt fc_transcripts.gtf > fc_known_transcripts.gtf
+```
+Check:
+```bash
+awk '$3=="transcript"' fc_known_transcripts.gtf | wc -l
+```
+Now we use this new GTF to compare with the previous one.
+
+
 **2) Structural comparison against a “known transcripts” GTF**
 
 Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/scripts/05_5_gffcompare_fc.sh)
@@ -144,13 +168,28 @@ The .tracking third column indicates closest reference match
 awk '{print $4}' fusarium.tracking | sort | uniq -c
 ```
 
-
-
-
+**3) Create a new GTF without the known transcripts ("=")**
+```bash
+grep 'class_code \"=\"' fusarium.annotated.gtf | wc -l
+```
+Usamos el archivo anterior: list_annotated_2.txt
+```bash
+grep -vFf list_annotated_2.txt fusarium.annotated.gtf > unknown_fusarium.annotated.gtf
+```
+Check:
+```bash
+awk '$3=="transcript"' unknown_fusarium.annotated.gtf | wc -l 
+```
+The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
 ## **Identification of long non-coding RNAs**  
-   - Step 1:  → [`scripts/.sh`](scripts/.sh)  
-   - Step 2:
+
+### Step 1:  → [`scripts/.sh`](scripts/.sh)  
+
+   
+   
+
+Step 2:
   
 12) **Differential expression (DESeq2)** → [`scripts/30_deseq2.R`](scripts/30_deseq2.R)  
 14) **lncRNA identification (notes + commands)** → [`scripts/50_lncrna_notes.md`](scripts/50_lncrna_notes.md)  
