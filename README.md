@@ -30,13 +30,15 @@ Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P.
 
 ## **SAM processing**
 
-Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed with samtools. Basic alignment QC was recorded with samtools flagstat. Intermediate SAM files were removed to save space. Host and pathogen BAMs are kept separately (one per sample).
+Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed with samtools. Intermediate SAM files were removed to save space. Host and pathogen BAMs are kept separately (one per sample).
 
    - SAM to BAM → [`scripts/samtools_stgtie.sh`](scripts/samtools_stgtie.sh) 
-   - Sorting BAM by name
-   - Fixing BAM by removing duplicates
-   - Sorting by coordinates
-   - Removing duplicates
+   - Sorting BAM by name → [`scripts/samtools_namesort.sh`](scripts/samtools_namesort.sh)
+   - Fixing BAM by removing duplicates → [`scripts/samtools_fixmate.sh`](scripts/samtools_fixmate.sh)
+   - Sorting by coordinates → [`scripts/samtools_sort.sh`](scripts/samtools_sort.sh)
+   - Removing duplicates → [`scripts/samtools_rmdup.sh`](scripts/samtools_rmdup.sh)
+
+
 7) **Pine assembly**
 8) **Pathogen assembly**
 9) **Pine comparation** 
