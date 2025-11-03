@@ -85,12 +85,51 @@ grep '^>' transcripts_${spp}_consensus.fa | wc -l
 
 Compare the _de novo_ transcripts to the reference GTF using ``gffcompare`` to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See [`scripts/05_4_gffcompare_pine.sh`](scripts/05_4_gffcompare_pine.sh)
 
+Output:
 
+${spp}.missed_introns.gff
+${spp}.R_missed.gff 
+${spp}.tracking 
+${spp}.${spp}_transcripts.gtf.tmap 
+${spp}.${spp}_transcripts.gtf.refmap 
+${spp}.loci 
+${spp}.annotated.gtf 
+${spp}.stats 
 
+•	How many loci do we have?
+```bash
+awk '{print $1}' ${spp}.loci | sort | uniq | wc -l
+```
+•	Pipi.tracking --> Thirth column indicates the information of the most close reference annotation transcript.
+```bash
+awk '{print $4}' ${spp}.tracking | sort | uniq -c
+```
+•	How many transcripts do we have?
+```bash
+wc -l ${spp}.tracking
+```
+•	How many transcripts do we have with a full match "="?
+```bash
+awk '$4=="="' ${spp}.tracking | wc -l
+```
 
-
-
-
+Generate a file with the IDs of all known transcripts and then delete them from the gtf:
+```bash
+grep 'class_code \"=\"' ${spp}.annotated.gtf | wc -l
+```
+Extract the fist field (until ;) from the column 9:
+```bash
+grep 'class_code \"=\"' ${spp}.annotated.gtf | cut -d$'\t' -f9 | cut -d ";" -f1 | uniq | sed 's/$/;/' > ${spp}_known_list.txt
+```
+Remove the known transcripts by:
+```bash
+grep -vFf ${spp}_known_list.txt ${spp}.annotated.gtf > unknown_${spp}.annotated.gtf 
+```
+Check:
+```bash
+awk '$3=="transcript"' unknown_${spp}.annotated.gtf | wc -l
+```
+The file for lncRNAs identification is: _unknown_${spp}.annotated.gtf_
 
 ##  **Pathogen assembly**
 
@@ -191,9 +230,6 @@ The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
 Step 2:
   
-12) **Differential expression (DESeq2)** → [`scripts/30_deseq2.R`](scripts/30_deseq2.R)  
-14) **lncRNA identification (notes + commands)** → [`scripts/50_lncrna_notes.md`](scripts/50_lncrna_notes.md)  
-15) **Functional annotation (optional)** → [`scripts/60_annotation_notes.md`](scripts/60_annotation_notes.md)
 
 
 
