@@ -22,9 +22,11 @@ Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and ligh
 
 Trimmed pairs were then split by species into pr_ (_P. radiata_) and pp_ (_P. pinea_) sets.
 
-## **Alignment (host / pathogen)** → [`scripts/hisat2.sh`](scripts/hisat2.sh)
+## **Alignment (host / pathogen)**
 
+Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/hisat2_pine.sh`](scripts/hisat2_pine.sh) and [`scripts/hisat2_fc.sh`](scripts/hisat2_fc.sh); reference details in `data/DATA.md`). 
 
+Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P. pinea_ to Ptaeda2.0, whereas pathogen alignments were expectedly low (<~4%) given plant-dominant libraries.
 
 
 6) **SAM processing**
