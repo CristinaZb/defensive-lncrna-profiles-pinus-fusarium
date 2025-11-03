@@ -17,13 +17,13 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
 ## References (not included)
 
 - **Host genome/annotation**
-  - Organism: *Pinus taeda* (loblolly pine) — TreeGenes code: **Pita**
-  - Assembly name/version: **Ptaeda2.0**
-  - Primary accession: **GCA_000404065.3** (NCBI Assembly)
-  - Assembly level: Scaffold; submitter: **TreeGenes Database**; release date: **2017-01-09**
-  - NCBI Assembly record: GCA_000404065.3 (Ptaeda2.0). 
-  - TreeGenes FTP: `treegenesdb.org/FTP/Genomes/Pita/v2.0/` (subdir `genome/`).
-
+  - Organism: *Pinus taeda* (loblolly pine)
+  - Assembly name/version: **Pita v2.01**
+  - NCBI Assembly record: **GCA_000404065.3**
+  - Assembly level: Scaffold; submitter: **TreeGenes Database**; TreeGenes FTP: `treegenesdb.org/FTP/Genomes/Pita/v2.01/`
+  - Genome FASTA: Pita.2_01.fa.gz
+  - Gene annotation (GTF): Pita.2_01.gtf.gz 
+ 
 - **Pathogen genome/annotation**
   - Name: Fusarium circinatum strain FC072V
   - Organism: *Fusarium circinatum* (TaxID: 48490)
@@ -45,13 +45,13 @@ We assessed read quality with FastQC on all raw FASTQ files (see [`scripts/01_fa
 
 ## **Trimming**  
 
-Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC was re-run to confirm improvement ([`scripts/fastqc.sh`](scripts/fastqc.sh)). All auxiliary *_2u.fastq.gz (unpaired 2) files were found empty and were removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
+Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC was re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary *_2u.fastq.gz (unpaired 2) files were found empty and were removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
 
 Trimmed pairs were then split by species into pr_ (_P. radiata_) and pp_ (_P. pinea_) sets.
 
 ## **Alignment (host / pathogen)**
 
-Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/hisat2_pine.sh`](scripts/hisat2_pine.sh) and [`scripts/hisat2_fc.sh`](scripts/hisat2_fc.sh); reference details in `data/DATA.md`). 
+Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/03_hisat2_pine.sh`](scripts/03_hisat2_pine.sh) and [`scripts/03_hisat2_fc.sh`](scripts/03_hisat2_fc.sh); reference details in `data/DATA.md`). 
 
 Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P. pinea_ to Ptaeda2.0, whereas pathogen alignments were expectedly low (<~4%) given plant-dominant libraries.
 
@@ -59,17 +59,32 @@ Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P.
 
 Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed with samtools. Intermediate SAM files were removed to save space. Host and pathogen BAMs are kept separately (one per sample).
 
-   - SAM to BAM → [`scripts/samtools_stgtie.sh`](scripts/samtools_stgtie.sh) 
-   - Sorting BAM by name → [`scripts/samtools_namesort.sh`](scripts/samtools_namesort.sh)
-   - Fixing BAM by removing duplicates → [`scripts/samtools_fixmate.sh`](scripts/samtools_fixmate.sh)
-   - Sorting by coordinates → [`scripts/samtools_sort.sh`](scripts/samtools_sort.sh)
-   - Removing duplicates → [`scripts/samtools_rmdup.sh`](scripts/samtools_rmdup.sh)
-
+   - SAM to BAM → [`scripts/04_1_samtools_stgtie.sh`](scripts/04_1_samtools_stgtie.sh) 
+   - Sorting BAM by name → [`scripts/04_2_samtools_namesort.sh`](scripts/04_2_samtools_namesort.sh)
+   - Fixing BAM by removing duplicates → [`scripts/04_3_samtools_fixmate.sh`](scripts/04_3_samtools_fixmate.sh)
+   - Sorting by coordinates → [`scripts/04_4_samtools_sort.sh`](scripts/04_4_samtools_sort.sh)
+   - Removing duplicates → [`scripts/04_5_samtools_rmdup.sh`](scripts/04_5_samtools_rmdup.sh)
 
 7) **Pine assembly**
-8) **Pathogen assembly**
-9) **Pine comparation** 
-10) **Identification of long non-coding RNAs**  
+
+Per-sample BAMs were assembled with StringTie in reference-guided mode for the host (`Pita.2_01.gtf.gz`; [`scripts/05_stringtie_pita.sh`](scripts/05_stringtie_pita.sh)) and without GTF for the pathogen [`scripts/05_stringtie_fc.sh`](scripts/05_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh).
+
+Number of assembled transcripts in each GTF:
+
+```bash
+awk '$3=="transcript"' ${file}_transcripts.gtf | wc -l
+```
+
+In order to get a fasta file with the sequences of the assembled transcripts of each organism, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_gffread_pine.sh`](scripts/05_gffread_pine.sh) and [`scripts/05_gffread_fc.sh`](scripts/05_gffread_fc.sh)
+
+and compared to the reference with gffcompare to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See scripts/28_stringtie_merge.sh
+
+
+
+
+9) **Pathogen assembly**
+10) **Pine comparation** 
+11) **Identification of long non-coding RNAs**  
    - Step 1:  → [`scripts/26_counts_featurecounts.sh`](scripts/26_counts_featurecounts.sh)  
    - Step 2:
   
