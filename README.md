@@ -67,7 +67,7 @@ Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed wi
 
 ##  **Pine assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-guided mode for the pine species (`Pita.2_01.gtf.gz`; [`scripts/05_stringtie_pita.sh`](scripts/05_stringtie_pita.sh)). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh).
+Per-sample BAMs were assembled with StringTie in reference-guided mode for the pine species (`Pita.2_01.gtf.gz`; [`scripts/05_1_stringtie_pita.sh`](scripts/05_1_stringtie_pita.sh)). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh).
 
 Number of assembled transcripts in each GTF:
 
@@ -75,7 +75,7 @@ Number of assembled transcripts in each GTF:
 awk '$3=="transcript"' ${file}_transcripts.gtf | wc -l
 ```
 
-In order to get a fasta file with the sequences of the assembled transcripts of each organism, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_gffread_pine.sh`](scripts/05_gffread_pine.sh)
+In order to get a fasta file with the sequences of the assembled transcripts of each organism, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)
 
 Check the number of transcripts in the FASTA files:
 
@@ -83,24 +83,63 @@ Check the number of transcripts in the FASTA files:
 grep '^>' transcripts_${spp}_consensus.fa | wc -l
 ```
 
-and compared to the reference with gffcompare to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See scripts/28_stringtie_merge.sh
+and compared to the reference with gffcompare to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering.
 
 
 
 
 ##  **Pathogen assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_stringtie_fc.sh`](scripts/05_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_stringtie_merge.sh`](scripts/05_stringtie_merge.sh) In order to get a fasta file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_gffread_fc.sh`](scripts/05_gffread_fc.sh)
+Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a fasta file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
+
+Check the number of transcripts in the FASTA files:
+
+```bash
+grep '^>' fc_transcripts.fa | wc -l
+```
+
+**>> Generate a protein-coding comparator GTF**
+
+Build a curated GTF of protein-coding transcripts to (i) label/retain known coding loci, (ii) define the “known set” for downstream comparisons, and (iii) separate novel/unknown models (candidates for lncRNA).
+
+**Inputs:**
+- GTF of assembled pathogen transcripts ``fc_transcripts.gtf``
+- FASTA of assembled pathogen transcripts ``fc_transcripts.fa``
+- Pathogen genome FASTA ``Fusarium_circinatum_FC072V.fa``
+- A reference known transcripts GTF for F. circinatum (e.g., curated/annotated set) → fc_known_transcripts.gtf
+
+**Outputs:**
+unknown_fusarium.annotated.gtf → GTF of novel/unknown transcripts (used later for lncRNA identification)
+
+**1) Functional annotation with EnTAP**
+
+Annotation of pathogen transcripts to identify those with functional hits/assignments → [`scripts/05_4_entap_fc.sh`](scripts/scripts/05_4_entap_fc.sh)
+
+Get first functional view of what is likely coding/known vs unknown:
+
+```bash
+grep -c '^>' entap_outfiles/final_results/final_annotated.fnn
+grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
+```
+
+**2) Structural comparison against a “known transcripts” GTF**
+
+Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files.
+
+awk '{print $1}' fusarium.loci | wc -l           # 10,486 loci
+awk '{print $1}' fusarium.loci | sort -u | wc -l # 10,486 unique loci
+# The .tracking third column indicates closest reference match
+awk '{print $4}' fusarium.tracking | sort | uniq -c
 
 
-10) **Pine comparation** 
-11) **Identification of long non-coding RNAs**  
-   - Step 1:  → [`scripts/26_counts_featurecounts.sh`](scripts/26_counts_featurecounts.sh)  
+
+
+
+## **Identification of long non-coding RNAs**  
+   - Step 1:  → [`scripts/.sh`](scripts/.sh)  
    - Step 2:
   
-11) 
 12) **Differential expression (DESeq2)** → [`scripts/30_deseq2.R`](scripts/30_deseq2.R)  
-13) **Co-expression (WGCNA, optional)** → [`scripts/40_wgcna.R`](scripts/40_wgcna.R)  
 14) **lncRNA identification (notes + commands)** → [`scripts/50_lncrna_notes.md`](scripts/50_lncrna_notes.md)  
 15) **Functional annotation (optional)** → [`scripts/60_annotation_notes.md`](scripts/60_annotation_notes.md)
 
