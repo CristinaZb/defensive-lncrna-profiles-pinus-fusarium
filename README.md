@@ -1,4 +1,4 @@
-# Pinus–Fusarium lncRNA (dual RNA-seq)
+# Pinus spp.–Fusarium long non-coding RNAs
 
 Reproducible dual RNA-seq analysis of defensive lncRNAs in *Pinus* challenged by *Fusarium circinatum*.  
 **Scope:** code-only repository (no raw data).
