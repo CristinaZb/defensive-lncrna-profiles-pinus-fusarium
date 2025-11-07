@@ -223,9 +223,11 @@ The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
 ## **Identification of long non-coding RNAs**  
 
-### Step 1:  → [`scripts/.sh`](scripts/.sh)  
+### Step 1:  → [`scripts/feelnc_filter.sh`](scripts/feelnc_filter.sh)  
 
-   
+Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts. After that, the sequences of the resulting transcripts (potential lncRNAs) were extracted `Gffread` ([`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)).
+
+
    
 
 Step 2:
