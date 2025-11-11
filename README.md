@@ -10,8 +10,7 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
 ## Raw reads (not included)
 
 - Type: paired-end RNA-Seq (dual RNA-seq: *Pinus* host + *Fusarium circinatum* pathogen).
-- Number of original files: `<e.g., 32 paired libraries>`; total size: `<e.g., ~135 GB>`.
-- Example filenames: `SampleX_1.fastq.gz`, `SampleX_2.fastq.gz`.
+- Number of original files: 32 paired libraries; total size: ~135 GB.
 - Source: Raw reads have been deposited in the NCBI SRA Database under accession numbers SRR13737940-53 (BioProject PRJNA702546).
 
 ## References (not included)
@@ -31,7 +30,6 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
   - Assembly accession: **GCA_018163655.1** (assembly level: Contig)
   - WGS master: **JAGGEA000000000**
   - BioSample: **SAMN18415966**
-  - Source: NCBI BioProject / Assembly records
 
 ## How to cite
 If you use this code, please cite this repository and the related manuscript (when available).  
