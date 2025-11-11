@@ -4,9 +4,9 @@
 
 EnTAP --runP \
 -i fc_transcripts.fa \
--d /soft/calendula2/haswell/EnTAP/1.9.2/databases/diamond/nr.dmnd \
--d /soft/calendula2/haswell/EnTAP/1.9.2/databases/diamond/refseq_v2.dmnd \
--d /soft/calendula2/haswell/EnTAP/1.9.2/databases/diamond/uniprot_sprot.dmnd \
+-d EnTAP/1.9.2/databases/diamond/nr.dmnd \
+-d EnTAP/1.9.2/databases/diamond/refseq_v2.dmnd \
+-d EnTAP/1.9.2/databases/diamond/uniprot_sprot.dmnd \
 --level 0 \
 --ontology 0 \
 --ontology 1 \
