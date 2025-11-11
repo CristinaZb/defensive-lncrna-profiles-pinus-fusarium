@@ -223,7 +223,7 @@ The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
 ## **Identification of long non-coding RNAs**  
 
-### Step 1: Identify lncRNAs with FEELnc → [`scripts/feelnc_filter.sh`](scripts/feelnc_filter.sh)  
+### Step 1: Identify lncRNAs with FEELnc → [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)  
 
 Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts. After that, the sequences of the resulting transcripts (potential lncRNAs) were extracted `Gffread` ([`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)).
 
@@ -231,7 +231,7 @@ Identify lncRNAs using the filter module of the `FEELnc` tool by removing the sh
    
 The filtered transcripts are screened for their respective coding potential using six different computational approaches:
 
-  (1) Coding Potential Calculator (CPC2) → [`scripts/cpc2.sh`](scripts/cpc2.sh)
+  (1) **Coding Potential Calculator (CPC2)** → [`scripts/07_cpc2.sh`](scripts/07_cpc2.sh)
 
 We extract those labelled as non-coding:
 
@@ -239,7 +239,7 @@ We extract those labelled as non-coding:
 awk '$8 == "noncoding" {print $1}' CPC2_${spp}-lncRNA.txt > CPC2_${spp}-noncoding.txt
 ```
   
-  (2) Coding-Non-Coding Index (CNCI) → [`scripts/cnci.sh`](scripts/cnci.sh)
+  (2) **Coding-Non-Coding Index (CNCI)** → [`scripts/07_cnci.sh`](scripts/07_cnci.sh)
 
 The resulting file CNCI.index has a index column (2nd) where it is specified if noncoding or coding. We extract those labeled as non-coding:
 
@@ -248,7 +248,7 @@ awk '$2 == "noncoding" {print $1}' CNCI.index | wc -l
 awk '$2 == "noncoding" {print $1}' CNCI.index > cnci_${spp}-noncoding.txt
 ```
   
-  (3) Coding-Potential Assessment Tool (CPAT) → [`scripts/cpat.sh`](scripts/cpat.sh)
+  (3) **Coding-Potential Assessment Tool (CPAT)** → [`scripts/07_cpat.sh`](scripts/07_cpat.sh)
 
 CPAT analysis is a method to judge transcript encoding ability by constructing logistic regression model, calculating coding probability based on ORF length and ORF coverage. When coding probability < 0.38, it is noncoding RNA.
 
@@ -263,7 +263,7 @@ We extract the names of transcripts assigned as non-coding:
 awk '$6 < 0.38 {print $1}' ${spp}_cpat | tail -n +2 > ${spp}_cpat_noncoding.txt
 ```
 
-  (4) PLEK → [`scripts/plek.sh`](scripts/plek.sh)
+  (4) **PLEK** → [`scripts/07_plek.sh`](scripts/07_plek.sh)
 
 Predicted positive samples are labeled as "Coding", and negative as "Non-coding". 
 ${spp}_plek_predicted --> first column label, third column name of transcripts
@@ -273,7 +273,7 @@ awk '$1 == "Non-coding" {print $3}' ${spp}_plek_predicted > ${spp}_plek_noncodin
 awk '$1 == "Non-coding" {print $3}' ${spp}_plek_predicted | wc -l
 ```
   
-  (5) FEELnc codpot module → [`scripts/feelnc_codpot.sh`](scripts/feelnc_codpot.sh)
+  (5) **FEELnc codpot module** → [`scripts/07_feelnc_codpot.sh`](scripts/07_feelnc_codpot.sh)
 
 We extract those labelled as non-coding (label--> 1 = coding; 0 = noncoding):
 
@@ -281,7 +281,7 @@ We extract those labelled as non-coding (label--> 1 = coding; 0 = noncoding):
 awk '$11 == "0" {print $1}' ${spp}_RF.txt > feelnc_${spp}_noncoding.txt
 ```
   
-  (6) EnTAP → [`scripts/entap_codpot.sh`](scripts/entap_codpot.sh)
+  (6) **EnTAP** → [`scripts/07_entap_codpot.sh`](scripts/07_entap_codpot.sh)
 
 To know the unannotated sequences:
 
