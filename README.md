@@ -5,12 +5,12 @@ Reproducible dual RNA-seq analysis of defensive lncRNAs in *Pinus* challenged by
 
 ## Data overview
 
-This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible.
+This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. Here ${spp} is a placeholder for the organism code (pp for _P. pinea_, pr for _P. radiata_).
 
 ## Raw reads (not included)
 
 - Type: paired-end RNA-Seq (dual RNA-seq: *Pinus* host + *Fusarium circinatum* pathogen).
-- Number of original files: 32 paired libraries; total size: ~135 GB.
+- Number of original files: 32 libraries; total size: ~135 GB.
 - Source: Raw reads have been deposited in the NCBI SRA Database under accession numbers SRR13737940-53 (BioProject PRJNA702546).
 
 ## References (not included)
@@ -85,6 +85,7 @@ Compare the _de novo_ transcripts to the reference GTF using ``gffcompare`` to o
 
 Output:
 
+```bash
 ${spp}.missed_introns.gff
 ${spp}.R_missed.gff 
 ${spp}.tracking 
@@ -92,13 +93,14 @@ ${spp}.${spp}_transcripts.gtf.tmap
 ${spp}.${spp}_transcripts.gtf.refmap 
 ${spp}.loci 
 ${spp}.annotated.gtf 
-${spp}.stats 
+${spp}.stats
+```
 
 •	How many loci do we have?
 ```bash
 awk '{print $1}' ${spp}.loci | sort | uniq | wc -l
 ```
-•	Pipi.tracking --> Thirth column indicates the information of the most close reference annotation transcript.
+•	Pipi.tracking --> Third column indicates the information of the most close reference annotation transcript.
 ```bash
 awk '{print $4}' ${spp}.tracking | sort | uniq -c
 ```
@@ -154,7 +156,7 @@ unknown_fusarium.annotated.gtf → GTF of novel/unknown transcripts (used later 
 
 **1) Functional annotation with EnTAP**
 
-Annotation of pathogen transcripts to identify those with functional hits/assignments → [`scripts/05_4_entap_fc.sh`](scripts/scripts/05_4_entap_fc.sh)
+Annotation of pathogen transcripts to identify those with functional hits/assignments → [`scripts/05_4_entap_fc.sh`](scripts/05_4_entap_fc.sh)
 
 Get first functional view of what is likely coding/known vs unknown:
 
@@ -185,7 +187,7 @@ Now we use this new GTF to compare with the previous one.
 
 **2) Structural comparison against a “known transcripts” GTF**
 
-Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/scripts/05_5_gffcompare_fc.sh)
+Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
 
 Number of loci:
 
@@ -284,7 +286,7 @@ awk '$11 == "0" {print $1}' ${spp}_RF.txt > feelnc_${spp}_noncoding.txt
 To know the unannotated sequences:
 
 ```bash
-frame_selection/GeneMarkS-T/proceseed/sequences_removed.fn
+frame_selection/GeneMarkS-T/processed/sequences_removed.fn
 final_results/final_unannotated.faa
 ```
 
