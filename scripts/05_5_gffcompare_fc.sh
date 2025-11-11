@@ -1,6 +1,6 @@
 #!/bin/bash
 
-module load haswell/gffcompare_0.12.1_gcc8.2.0
+module load gffcompare_0.12.1_gcc8.2.0
 
 # Run gffcompare utility
 gffcompare -o fusarium -r fc_known_transcripts.gtf fc_transcripts.gtf -p FCIR --debug
