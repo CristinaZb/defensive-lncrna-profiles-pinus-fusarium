@@ -3,6 +3,27 @@
 Reproducible dual RNA-seq analysis of defensive lncRNAs in *Pinus* challenged by *Fusarium circinatum*.  
 **Scope:** code-only repository (no raw data).
 
+## Table of Contents
+- [Data overview](#data-overview)
+  - [Raw reads (not included)](#raw-reads-not-included)
+  - [References (not included)](#references-not-included)
+- [How to cite](#how-to-cite)
+- [Bioinformatics pipeline](#bioinformatics-pipeline)
+  - [Quality control](#quality-control)
+  - [Trimming](#trimming)
+  - [Alignment (host / pathogen)](#alignment-host--pathogen)
+  - [SAM processing](#sam-processing)
+  - [Pine assembly](#pine-assembly)
+  - [Pathogen assembly](#pathogen-assembly)
+  - [Generate a protein-coding comparator GTF](#-generate-a-protein-coding-comparator-gtf)
+  - [Identification of long non-coding RNAs](#identification-of-long-non-coding-rnas)
+    - [Step 1: Identify lncRNAs with FEELnc](#step-1-identify-lncrnas-with-feelnc)
+    - [Step 2: lncRNAs identification by coding potential assessment](#step-2-lncrnas-identification-by-coding-potential-assessment)
+  - [Generate a fasta with the final lncRNAs](#generate-a-fasta-with-the-final-lncrnas)
+  - [Expression](#expression)
+- [License](#license)
+- [Contact](#contact)
+
 ## Data overview
 
 This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. Here ${spp} is a placeholder for the organism code (pp for _P. pinea_, pr for _P. radiata_).
@@ -10,7 +31,7 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
 ## Raw reads (not included)
 
 - Type: paired-end RNA-Seq (dual RNA-seq: *Pinus* host + *Fusarium circinatum* pathogen).
-- Number of original files: 32 libraries; total size: ~135 GB.
+- Number of original files: 32 libraries (total size: ~135 GB).
 - Source: Raw reads have been deposited in the NCBI SRA Database under accession numbers SRR13737940-53 (BioProject PRJNA702546).
 
 ## References (not included)
@@ -50,8 +71,6 @@ Trimmed pairs were then split by species into pr_ (_P. radiata_) and pp_ (_P. pi
 ## **Alignment (host / pathogen)**
 
 Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/03_hisat2_pine.sh`](scripts/03_hisat2_pine.sh) and [`scripts/03_hisat2_fc.sh`](scripts/03_hisat2_fc.sh); reference details in `data/DATA.md`). 
-
-Typical host mapping rates were ~79–81% for _P. radiata_ and ~44–49% for _P. pinea_ to Ptaeda2.0, whereas pathogen alignments were expectedly low (<~4%) given plant-dominant libraries.
 
 ## **SAM processing**
 
@@ -100,7 +119,7 @@ ${spp}.stats
 ```bash
 awk '{print $1}' ${spp}.loci | sort | uniq | wc -l
 ```
-•	Pipi.tracking --> Third column indicates the information of the most close reference annotation transcript.
+•	${spp}.tracking --> Third column indicates the information of the most close reference annotation transcript
 ```bash
 awk '{print $4}' ${spp}.tracking | sort | uniq -c
 ```
@@ -113,22 +132,23 @@ wc -l ${spp}.tracking
 awk '$4=="="' ${spp}.tracking | wc -l
 ```
 
-Generate a file with the IDs of all known transcripts and then delete them from the gtf:
+Generate a file with the IDs of all known transcripts (= coding transcripts) and then delete them from the gtf:
+
 ```bash
 grep 'class_code \"=\"' ${spp}.annotated.gtf | wc -l
 ```
+
 Extract the fist field (until ;) from the column 9:
 ```bash
 grep 'class_code \"=\"' ${spp}.annotated.gtf | cut -d$'\t' -f9 | cut -d ";" -f1 | uniq | sed 's/$/;/' > ${spp}_known_list.txt
 ```
-Remove the known transcripts by:
+
+Remove the known transcripts (= coding transcripts) and check:
 ```bash
 grep -vFf ${spp}_known_list.txt ${spp}.annotated.gtf > unknown_${spp}.annotated.gtf 
-```
-Check:
-```bash
 awk '$3=="transcript"' unknown_${spp}.annotated.gtf | wc -l
 ```
+
 The file for lncRNAs identification is: _unknown_${spp}.annotated.gtf_
 
 ##  **Pathogen assembly**
@@ -221,6 +241,7 @@ awk '$3=="transcript"' unknown_fusarium.annotated.gtf | wc -l
 ```
 The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
+
 ## **Identification of long non-coding RNAs**  
 
 ### Step 1: Identify lncRNAs with FEELnc → [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)  
@@ -241,7 +262,7 @@ awk '$8 == "noncoding" {print $1}' CPC2_${spp}-lncRNA.txt > CPC2_${spp}-noncodin
   
   (2) **Coding-Non-Coding Index (CNCI)** → [`scripts/07_cnci.sh`](scripts/07_cnci.sh)
 
-The resulting file CNCI.index has a index column (2nd) where it is specified if noncoding or coding. We extract those labeled as non-coding:
+The resulting file `CNCI.index` has a index column (2nd) where it is specified if noncoding or coding. We extract those labeled as noncoding:
 
 ```bash
 awk '$2 == "noncoding" {print $1}' CNCI.index | wc -l
@@ -250,14 +271,14 @@ awk '$2 == "noncoding" {print $1}' CNCI.index > cnci_${spp}-noncoding.txt
   
   (3) **Coding-Potential Assessment Tool (CPAT)** → [`scripts/07_cpat.sh`](scripts/07_cpat.sh)
 
-CPAT analysis is a method to judge transcript encoding ability by constructing logistic regression model, calculating coding probability based on ORF length and ORF coverage. When coding probability < 0.38, it is noncoding RNA.
+CPAT analysis is a method to judge transcript encoding ability by constructing logistic regression model, calculating coding probability based on ORF length and ORF coverage. When coding probability < 0.38, it is considered as noncoding RNA.
 
 ```bash
 awk '$6 < 0.38 {print $1}' ${spp}_cpat | wc -l
 awk '$6 > 0.38 {print $1}' ${spp}_cpat | wc -l
 ```
 
-We extract the names of transcripts assigned as non-coding:
+We extract the names of transcripts assigned as noncoding:
 
 ```bash
 awk '$6 < 0.38 {print $1}' ${spp}_cpat | tail -n +2 > ${spp}_cpat_noncoding.txt
@@ -266,7 +287,7 @@ awk '$6 < 0.38 {print $1}' ${spp}_cpat | tail -n +2 > ${spp}_cpat_noncoding.txt
   (4) **PLEK** → [`scripts/07_plek.sh`](scripts/07_plek.sh)
 
 Predicted positive samples are labeled as "Coding", and negative as "Non-coding". 
-${spp}_plek_predicted --> first column label, third column name of transcripts
+Output: ${spp}_plek_predicted --> first column label, third column name of transcripts
 
 ```bash
 awk '$1 == "Non-coding" {print $3}' ${spp}_plek_predicted > ${spp}_plek_noncoding.txt
@@ -283,7 +304,7 @@ awk '$11 == "0" {print $1}' ${spp}_RF.txt > feelnc_${spp}_noncoding.txt
   
   (6) **EnTAP** → [`scripts/07_entap_codpot.sh`](scripts/07_entap_codpot.sh)
 
-To know the unannotated sequences:
+The unannotated sequences (potential non-coding sequences) are located in these files:
 
 ```bash
 frame_selection/GeneMarkS-T/processed/sequences_removed.fn
@@ -306,13 +327,14 @@ Check that there are no printable characters in the text file and remove them.
 cat -A ${spp}_consensus_noncoding.txt
 dos2unix ${spp}_consensus_noncoding.txt
 ```
+
 Convert the Fasta format of the transcripts into single-line Fasta:
 
 ```bash
 awk '/^>/ {printf("%s%s\n",(NR>1?"\n":""),$0);next;} {printf("%s",$0);} END {printf("\n");}' transcripts_${spp}_consensus.fa > transcripts_${spp}_consensus.fa
 ```
 
-Extract sequences:
+Extract sequences and check:
 
 ```bash
 grep -F -f ${spp}_consensus_noncoding.txt -A 1 transcripts_${spp}_consensus.fa | grep -v "^--$" > ${spp}_consensus_noncoding.fa
@@ -321,14 +343,14 @@ grep -c "^>" ${spp}_consensus_noncoding.fa
 
 ## **Expression**
 
-To calculate the expression, we need the BAM files used to generate the GTFs, the non-redundant GTF, and `StringTie -e`. We prepare the consensus GTF because it has a header that needs to be removed:
+To calculate the expression of transcripts, we need the BAM files used to generate the GTFs, the non-redundant GTF, and `StringTie -e`. We prepare the non-redundant GTF because it has a header that needs to be removed:
 
 ```bash
 tail -n +3 ${spp}_transcripts.gtf > ${spp}_transcripts-mod.gtf
 ```
 
-Now we calculate the expression for all identified transcripts. To determine the expression of lncRNAs, these will be filtered later in the RStudio script. See [`scripts/08_stringtie_expression.sh`](scripts/08_stringtie_expression.sh)
-We convert the GTFs with expression information into a quantification table. First, we prepare the files that we need: `sample_lst_gtf.txt` and `prepDE.py` (visit https://github.com/gpertea/stringtie). After that, we run a script to run the python script:
+Now we calculate the expression for all identified transcripts. To determine the expression of lncRNAs, transcripts will be filtered later in the RStudio script. See [`scripts/08_stringtie_expression.sh`](scripts/08_stringtie_expression.sh)
+To convert the GTFs with expression information into a quantification table, prepare the files that we need: `sample_lst_gtf.txt` and `prepDE.py` (visit https://github.com/gpertea/stringtie). After that, we run a script to run the python script:
 
 ```bash
 python2 prepDE.py -i sample_lst_gtf.txt -s ${spp}
