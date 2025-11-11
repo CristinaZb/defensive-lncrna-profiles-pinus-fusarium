@@ -1,8 +1,9 @@
 #!/bin/bash
 
-module load haswell/FastQC_0.11.9 
+module load FastQC_0.11.9
+
 # Run FastQC 
-for i in $(ls $PATH_RAW/*.fastq.gz) ; do 
+for i in $(ls *.fastq.gz) ; do 
 echo $i 
-srun fastqc -o $PATH_OUT ${i} -t 2 
+srun fastqc -o ${i} -t 2 
 done
