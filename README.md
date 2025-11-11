@@ -20,8 +20,8 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
   - Assembly name/version: **Pita v2.01**
   - NCBI Assembly record: **GCA_000404065.3**
   - Assembly level: Scaffold; submitter: **TreeGenes Database**; TreeGenes FTP: `treegenesdb.org/FTP/Genomes/Pita/v2.01/`
-  - Genome FASTA: Pita.2_01.fa.gz
-  - Gene annotation (GTF): Pita.2_01.gtf.gz 
+  - Genome FASTA: **Pita.2_01.fa.gz**
+  - Gene annotation (GTF): **Pita.2_01.gtf.gz** 
  
 - **Pathogen genome/annotation**
   - Name: Fusarium circinatum strain FC072V
