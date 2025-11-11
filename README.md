@@ -328,7 +328,13 @@ tail -n +3 ${spp}_transcripts.gtf > ${spp}_transcripts-mod.gtf
 ```
 
 Now we calculate the expression for all identified transcripts. To determine the expression of lncRNAs, these will be filtered later in the RStudio script. See [`scripts/08_stringtie_expression.sh`](scripts/08_stringtie_expression.sh)
+We convert the GTFs with expression information into a quantification table. First, we prepare the files that we need: `sample_lst_gtf.txt` and `prepDE.py` (visit https://github.com/gpertea/stringtie). After that, we run a script to run the python script:
 
+```bash
+python2 prepDE.py -i sample_lst_gtf.txt -s ${spp}
+```
+
+Now we can export the final table `transcript_count_matrix.csv` to RStudio.
 
 ## License
 MIT — see `LICENSE`.
