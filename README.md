@@ -45,7 +45,7 @@ We assessed read quality with FastQC on all raw FASTQ files (see [`scripts/01_fa
 
 ## **Trimming**  
 
-Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC was re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary *_2u.fastq.gz (unpaired 2) files were found empty and were removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
+Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC was re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary `*_2u.fastq.gz` (unpaired 2) files were found empty and were removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
 
 Trimmed pairs were then split by species into pr_ (_P. radiata_) and pp_ (_P. pinea_) sets.
 
@@ -297,9 +297,37 @@ grep "^>" entap_outfiles/frame_selection/GeneMarkS-T/processed/sequences_removed
 grep "^>" entap_outfiles/final_results/final_unannotated.faa | sed 's/^>//' > final_unannotated.txt
 cat entap_outfiles/frame_selection/GeneMarkS-T/processed/sequences_removed.txt entap_outfiles/final_results/final_unannotated.txt > entap_outfiles/final_results/entap_${spp}_noncoding.txt
 ```
-  
 
+## **Generate a fasta with the final lncRNAs**
 
+Check that there are no printable characters in the text file and remove them.
+
+```bash
+cat -A ${spp}_consensus_noncoding.txt
+dos2unix ${spp}_consensus_noncoding.txt
+```
+Convert the Fasta format of the transcripts into single-line Fasta:
+
+```bash
+awk '/^>/ {printf("%s%s\n",(NR>1?"\n":""),$0);next;} {printf("%s",$0);} END {printf("\n");}' transcripts_${spp}_consensus.fa > transcripts_${spp}_consensus.fa
+```
+
+Extract sequences:
+
+```bash
+grep -F -f ${spp}_consensus_noncoding.txt -A 1 transcripts_${spp}_consensus.fa | grep -v "^--$" > ${spp}_consensus_noncoding.fa
+grep -c "^>" ${spp}_consensus_noncoding.fa
+```
+
+## **Expression**
+
+To calculate the expression, we need the BAM files used to generate the GTFs, the non-redundant GTF, and `StringTie -e`. We prepare the consensus GTF because it has a header that needs to be removed:
+
+```bash
+tail -n +3 ${spp}_transcripts.gtf > ${spp}_transcripts-mod.gtf
+```
+
+Now we calculate the expression for all identified transcripts. To determine the expression of lncRNAs, these will be filtered later in the RStudio script. See [`scripts/08_stringtie_expression.sh`](scripts/08_stringtie_expression.sh)
 
 
 ## License
