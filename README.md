@@ -1,16 +1,19 @@
 # Long non-coding RNAs (lncRNAs) in the pathosystem *Pinus* spp.–*Fusarium circinatum*
 
-Long non-coding RNAs (lncRNAs) are emerging regulators of plant immunity, modulating gene expression through chromatin interactions, cis proximity to defense genes, RNA–protein decoys, and crosstalk with small RNAs. In forest trees, and particularly in conifers, their roles during pathogen challenge remain largely unresolved. This repository documents a reproducible dual RNA-seq workflow to profile defense-related lncRNAs in resistant *Pinus pinea* and susceptible *P. radiata* during infection by *Fusarium circinatum*, and to survey fungal lncRNAs expressed in planta during the pathogenesis. The code and configuration files provided here aim to enable transparent re-analysis and serve as a foundation for testable hypotheses on lncRNA-mediated regulation of pine resistance and fungal virulence.
+Long non-coding RNAs (lncRNAs) are emerging regulators of plant immunity, modulating gene expression through chromatin interactions, cis proximity to defense genes, RNA–protein decoys, and crosstalk with small RNAs. In forest trees, and particularly in conifers, their roles during pathogen challenge remain largely unresolved. This repository documents a reproducible dual RNA-seq workflow to profile defense-related lncRNAs in resistant *Pinus pinea* and susceptible *P. radiata* during infection by *Fusarium circinatum*, and to survey fungal lncRNAs expressed in planta during pathogenesis. The code and configuration files provided here aim to enable transparent re-analysis and serve as a foundation for testable hypotheses on lncRNA-mediated regulation of pine resistance and fungal virulence.
 
 ## Data overview
 
 This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. 
 Here `${spp}` is a placeholder for the organism code (pipi for _P. pinea_, pira for _P. radiata_).
 
+**Compatibility note**
+This pipeline was scripted against the **tool versions available at the time of the analysis**. CLI options, defaults, or file formats may have changed since then. If you plan to re-run it, you will likely need to **adapt scripts and parameters** to your current toolchain. See [Software & versions](#software--versions).
+
 ## Raw reads (not included)
 
 - Type: paired-end RNA-Seq (dual RNA-seq: *Pinus* host + *Fusarium circinatum* pathogen).
-- Number of original files: 32 libraries.
+- Number of original files: 32 paired-end libraries (1/2).
 - Source: Raw reads have been deposited in the NCBI SRA Database under accession numbers SRR13737940-53 (BioProject PRJNA702546).
 
 ## References (not included)
@@ -26,7 +29,7 @@ Here `${spp}` is a placeholder for the organism code (pipi for _P. pinea_, pira 
 - **Pathogen genome/annotation**
   - Name: Fusarium circinatum strain FC072V
   - Organism: *Fusarium circinatum* (TaxID: 48490)
-  - BioProject: **PRJNA716280** — Genome sequencing and assembly; scope: monoisolate; registered 2021-04-27
+  - BioProject: **PRJNA716280**
   - Assembly accession: **GCA_018163655.1**
   - WGS master: **JAGGEA000000000**
   - BioSample: **SAMN18415966**
@@ -53,7 +56,7 @@ Assess read quality with FastQC on all raw FASTQ files (see [`scripts/01_fastqc.
 
 ## **Trimming**  
 
-Reads are trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC is re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary `*_2u.fastq.gz` (unpaired 2) files found empty might be removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
+Reads are trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC is re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary `*_2u.fastq.gz` (unpaired 2) files found empty are removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
 
 ## **Alignment (host / pathogen)**
 
@@ -63,7 +66,7 @@ Trimmed reads are aligned with HISAT2 (`--dta`, `stranded RF`) against the host 
 
 Alignment outputs (SAM) are converted to BAM, coordinate-sorted, and indexed with samtools. Intermediate SAM files might be removed to save space. Host and pathogen BAMs are kept separately (one per sample).
 
-   - SAM to BAM → [`scripts/04_1_samtools_stgtie.sh`](scripts/04_1_samtools_stgtie.sh) 
+   - SAM to BAM → [`scripts/04_1_samtools_view.sh`](scripts/04_1_samtools_view.sh) 
    - Sorting BAM by name → [`scripts/04_2_samtools_namesort.sh`](scripts/04_2_samtools_namesort.sh)
    - Fixing BAM by removing duplicates → [`scripts/04_3_samtools_fixmate.sh`](scripts/04_3_samtools_fixmate.sh)
    - Sorting by coordinates → [`scripts/04_4_samtools_sort.sh`](scripts/04_4_samtools_sort.sh)
@@ -147,10 +150,10 @@ Extraction (assumes ``transcript_id`` is the first attribute in column 9):
 
 ```bash
 grep 'class_code "=";' ${spp}.annotated.gtf \
-  | cut -f9 \
-  | cut -d';' -f1 \
-  | uniq \
-  | sed 's/$/;/' > ${spp}_known_list.txt
+  | awk -F'\t' '{print $9}' \
+  | tr ';' '\n' \
+  | awk -F'"' '/^ *transcript_id/ {print "transcript_id \"" $2 "\";"}' \
+  | sort -u > ${spp}_known_list.txt
 ```
 
 Remove the known (“=”) transcripts and verify the remaining count:
@@ -166,7 +169,7 @@ The file for lncRNAs identification is: _unknown_${spp}.annotated.gtf_
 
 ### Step 1: Identify lncRNAs with FEELnc  
 
-Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts (see [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)). After that, the sequences of the resulting transcripts (potential lncRNAs) must be extracted `Gffread` ([`scripts/06_gffread.sh`](scripts/06_gffread.sh)).
+Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts (see [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)). After that, the sequences of the resulting transcripts (potential lncRNAs) must be extracted `gffread` ([`scripts/06_gffread.sh`](scripts/06_gffread.sh)).
 
 How many transcripts remain in the identification pipeline?
 
@@ -226,9 +229,9 @@ awk '$1 == "Non-coding" {print $3}' ${spp}_plek_predicted | wc -l
 Outputs are written to the `--outdir`:
 
 ```text
-- `${spp}-lncRNA.gtf`  (lncRNA candidates)
-- `${spp}-mRNA.gtf`    (coding set for comparison)
-- `${spp}_RF.txt`      (coding-potential scores/labels)
+- ${spp}-lncRNA.gtf  (lncRNA candidates)
+- ${spp}-mRNA.gtf    (coding set for comparison)
+- ${spp}_RF.txt      (coding-potential scores/labels)
 ```
 
 We extract those labelled as non-coding (label--> 1 = coding; 0 = noncoding):
@@ -335,13 +338,13 @@ dos2unix ${spp}_consensus_noncoding.txt
 Convert the FASTA format of the transcripts into single-line FASTA:
 
 ```bash
-awk '/^>/ {printf("%s%s\n",(NR>1?"\n":""),$0);next;} {printf("%s",$0);} END {printf("\n");}' transcripts_${spp}_consensus.fa > transcripts_${spp}_consensus.fa
+awk '/^>/ {printf("%s%s\n",(NR>1?"\n":""),$0);next;} {printf("%s",$0);} END {printf("\n");}' transcripts_${spp}_consensus.fa > transcripts_${spp}_consensus.oneline.fa
 ```
 
 Extract sequences and check:
 
 ```bash
-grep -F -f ${spp}_consensus_noncoding.txt -A 1 transcripts_${spp}_consensus.fa | grep -v "^--$" > ${spp}_consensus_noncoding.fa
+grep -F -f ${spp}_consensus_noncoding.txt -A 1 transcripts_${spp}_consensus.oneline.fa | grep -v "^--$" > ${spp}_consensus_noncoding.fa
 grep -c "^>" ${spp}_consensus_noncoding.fa
 ```
 
@@ -364,7 +367,7 @@ Now we export the final table `transcript_count_matrix.csv` to RStudio in order 
 
 ##  **Pathogen assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a FASTA file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
+Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh)). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a FASTA file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
 
 Check the number of transcripts in the FASTA files:
 
@@ -419,7 +422,7 @@ Now we use this new GTF to compare with the previous one.
 
 **2) Structural comparison against a “known transcripts” GTF**
 
-Contrast the assembled GTF against a reference known set using ``gffcompare`` to classify each transcript structurally (match/novel, class codes) and generate ``.tracking`` and ``.loci files``  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
+Contrast the assembled GTF against a reference known set using ``gffcompare`` to classify each transcript structurally (match/novel, class codes) and generate ``.tracking`` and ``.loci`` files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
 
 Number of loci:
 
@@ -445,7 +448,7 @@ awk '{print $4}' fusarium.tracking | sort | uniq -c
 grep 'class_code \"=\"' fusarium.annotated.gtf | wc -l
 ```
 
-Usamos el archivo anterior: list_annotated_2.txt
+We reuse the annotated list built above (`list_annotated_2.txt`) to subtract known transcripts:
 
 ```bash
 grep -vFf list_annotated_2.txt fusarium.annotated.gtf > unknown_fusarium.annotated.gtf
@@ -459,9 +462,35 @@ The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
 The process of pathogen lncRNA identification and expression assessment is similar to the one used for pine species, this time without using EnTAP as it was already used in previous step.
 
+## Software & versions
+- FastQC v.0.11.9
+- Trimmomatic v.0.38
+- HISAT2 v.2.0.0
+- samtools v.1.7
+- StringTie v.2.1.4
+- gffread v.0.12.1
+- gffcompare v.0.12.1
+- FEELnc v.0.2
+- CPC2 v.1.0.1
+- EnTAP v.0.9.2
+
 ## How to cite
-If you use this code, please cite this repository and the related manuscript (when available).  
-*(A `CITATION.cff` file will be added for automated citation metadata.)*
+
+This repository includes a `CITATION.cff` file—use the **“Cite this repository”** button on GitHub for BibTeX/APA/MLA export.
+
+If you need a plain-text fallback, please cite as:
+> Zamora-Ballesteros, C. (2025). *Pinus–Fusarium lncRNA analysis pipeline (dual RNA-seq)* (v0.1.0). GitHub. https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium
+
+**BibTeX (fallback):**
+```bibtex
+@software{ZamoraBallesteros_2025_pinus_fusarium_lncrna,
+  author  = {Zamora-Ballesteros, Cristina},
+  title   = {Pinus–Fusarium lncRNA analysis pipeline (dual RNA-seq)},
+  year    = {2025},
+  version = {v0.1.0},
+  url     = {https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium},
+  license = {MIT}
+}
 
 ## License
 MIT — see `LICENSE`.
