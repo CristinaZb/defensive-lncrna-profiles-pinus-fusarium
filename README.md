@@ -256,7 +256,7 @@ cat entap_outfiles/frame_selection/GeneMarkS-T/processed/sequences_removed.txt e
 
 ## **Build a consensus lncRNA set across predictors**
 
-Each predictor (CNCI, CPAT, CPC2, PLEK, FEELnc codpot, EnTAP unannotated) has distinct biases. To be conservative, we define consensus lncRNAs as the intersection of the six non-coding sets per species. The resulting ID lists (${spp}_consensus_noncoding.txt) feed directly into the FASTA extraction step below.
+Each predictor (CNCI, CPAT, CPC2, PLEK, FEELnc codpot, EnTAP unannotated) has distinct biases. To be conservative, we define consensus lncRNAs as the intersection of the six non-coding sets per species. The resulting ID lists (``${spp}_consensus_noncoding.txt``) feed directly into the FASTA extraction step below.
 
 Inputs (per species):
 
