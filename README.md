@@ -166,9 +166,14 @@ The file for lncRNAs identification is: _unknown_${spp}.annotated.gtf_
 
 ### Step 1: Identify lncRNAs with FEELnc  
 
-Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts (see [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)). After that, the sequences of the resulting transcripts (potential lncRNAs) must be extracted `Gffread` ([`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)).
+Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts (see [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)). After that, the sequences of the resulting transcripts (potential lncRNAs) must be extracted `Gffread` ([`scripts/06_gffread.sh`](scripts/06_gffread.sh)).
 
-The file for coding potential assessment is: candidate_pira-lncRNA.fa
+How many transcripts remain in the identification pipeline?
+
+```bash
+awk '$3=="transcript"' candidate_${spp}-lncRNA.gtf | wc -l
+```
+The file for coding potential assessment is: ``candidate_${spp}-lncRNA.fa``
 
 ### Step 2: lncRNAs identification by coding potential assessment
    
