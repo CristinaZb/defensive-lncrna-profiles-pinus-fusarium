@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+title: "Pinus spp.–Fusarium long non-coding RNAs"
+message: "If you use this repository, please cite it as below."
+type: software
+authors:
+  - family-names: Zamora-Ballesteros
+    given-names: Cristina
+version: "0.1.0"
+date-released: "2025-11-12"
+repository-code: "https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium"
+license: MIT
