@@ -2,6 +2,8 @@
 
 Long non-coding RNAs (lncRNAs) are emerging regulators of plant immunity, modulating gene expression through chromatin interactions, cis proximity to defense genes, RNA–protein decoys, and crosstalk with small RNAs. In forest trees, and particularly in conifers, their roles during pathogen challenge remain largely unresolved. This repository documents a reproducible dual RNA-seq workflow to profile defense-related lncRNAs in resistant *Pinus pinea* and susceptible *P. radiata* during infection by *Fusarium circinatum*, and to survey fungal lncRNAs expressed in planta during pathogenesis. The code and configuration files provided here aim to enable transparent re-analysis and serve as a foundation for testable hypotheses on lncRNA-mediated regulation of pine resistance and fungal virulence.
 
+[![DOI](https://zenodo.org/badge/1088652529.svg)](https://doi.org/10.5281/zenodo.17591267)
+
 ## Data overview
 
 This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. 
