@@ -4,7 +4,8 @@ Long non-coding RNAs (lncRNAs) are emerging regulators of plant immunity, modula
 
 ## Data overview
 
-This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. Here `${spp}` is a placeholder for the organism code (pp for _P. pinea_, pr for _P. radiata_).
+This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. 
+Here `${spp}` is a placeholder for the organism code (pipi for _P. pinea_, pira for _P. radiata_).
 
 ## Raw reads (not included)
 
