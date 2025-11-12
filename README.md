@@ -42,13 +42,12 @@ This pipeline was scripted against the **tool versions available at the time of 
 - [Alignment (host / pathogen)](#alignment-host--pathogen)
 - [SAM processing](#sam-processing)
 - [Pine assembly](#pine-assembly)
-- [Pathogen assembly](#pathogen-assembly)
-- [Generate a protein-coding comparator GTF](#generate-a-protein-coding-comparator-gtf)
 - [Identification of long non-coding RNAs](#identification-of-long-non-coding-rnas)
   - [Step 1: Identify lncRNAs with FEELnc](#step-1-identify-lncrnas-with-feelnc)
   - [Step 2: lncRNAs identification by coding potential assessment](#step-2-lncrnas-identification-by-coding-potential-assessment)
-- [Generate a FASTA with the final lncRNAs](#generate-a-FASTA-with-the-final-lncrnas)
+- [Build a consensus lncRNA set across predictors](#build-a-consensus-lncrna-set-across-predictors)
 - [Expression](#expression)
+- [Pathogen assembly](#pathogen-assembly)
 
 ## **Quality control**
 
@@ -479,13 +478,13 @@ The process of pathogen lncRNA identification and expression assessment is simil
 This repository includes a `CITATION.cff` file—use the **“Cite this repository”** button on GitHub for BibTeX/APA/MLA export.
 
 If you need a plain-text fallback, please cite as:
-> Zamora-Ballesteros, C. (2025). *Pinus–Fusarium lncRNA analysis pipeline (dual RNA-seq)* (v0.1.0). GitHub. https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium
+> Zamora-Ballesteros, C. (2025). *Long non-coding RNAs (lncRNAs) in the pathosystem Pinus spp.–Fusarium circinatum* (v0.1.0). GitHub. https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium
 
 **BibTeX (fallback):**
 ```bibtex
 @software{ZamoraBallesteros_2025_pinus_fusarium_lncrna,
   author  = {Zamora-Ballesteros, Cristina},
-  title   = {Pinus–Fusarium lncRNA analysis pipeline (dual RNA-seq)},
+  title   = {Long non-coding RNAs (lncRNAs) in the pathosystem Pinus spp.–Fusarium circinatum},
   year    = {2025},
   version = {v0.1.0},
   url     = {https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium},
