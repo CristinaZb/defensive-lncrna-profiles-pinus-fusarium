@@ -276,7 +276,7 @@ entap_${spp}_noncoding.txt
 ```r
 # ---- Packages ----
 suppressPackageStartupMessages({
-  library(tidyverse)   # readr, dplyr, purrr
+  library(tidyverse)
 })
 
 # Helper: read 1-column files robustly and normalize IDs
@@ -324,7 +324,7 @@ res_pira <- consensus_from_files("pira")  # Pinus radiata
 res_pipi <- consensus_from_files("pipi")  # Pinus pinea
 ```
 
-We next extract FASTA sequences only for transcripts present in the consensus lists created above (${spp}_consensus_noncoding.txt), using the species-specific transcript FASTA files (transcripts_${spp}_consensus.fa). Check that there are no printable characters in the text file and remove them:
+We next extract FASTA sequences only for transcripts present in the consensus lists created above (``${spp}_consensus_noncoding.txt``), using the species-specific transcript FASTA files (``transcripts_${spp}_consensus.fa``). Check that there are no printable characters in the text file and remove them:
 
 ```bash
 cat -A ${spp}_consensus_noncoding.txt
