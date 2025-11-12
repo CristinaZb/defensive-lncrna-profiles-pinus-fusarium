@@ -480,22 +480,22 @@ The process of pathogen lncRNA identification and expression assessment is simil
 
 This repository includes a `CITATION.cff` file—use the **“Cite this repository”** button on GitHub for BibTeX/APA/MLA export.
 
-If you need a plain-text fallback, please cite as:
-> Zamora-Ballesteros, C. (2025). *Long non-coding RNAs (lncRNAs) in the pathosystem Pinus spp.–Fusarium circinatum* (v0.1.0). GitHub. https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium
+**Preferred reference:**  
+Zamora-Ballesteros, C. (2025). *Long non-coding RNAs (lncRNAs) in the pathosystem Pinus spp.–Fusarium circinatum* (v0.1.0) [Software]. Zenodo. https://doi.org/10.5281/zenodo.17591556
 
-**BibTeX (fallback):**
+**BibTeX:**
 ```bibtex
-@software{ZamoraBallesteros_2025_pinus_fusarium_lncrna,
+@software{ZamoraBallesteros_2025_lncrna_pinus_fusarium,
   author  = {Zamora-Ballesteros, Cristina},
   title   = {Long non-coding RNAs (lncRNAs) in the pathosystem Pinus spp.–Fusarium circinatum},
   year    = {2025},
   version = {v0.1.0},
+  doi     = {10.5281/zenodo.17591556},
   url     = {https://github.com/CristinaZb/defensive-lncrna-profiles-pinus-fusarium},
   license = {MIT}
 }
-
 ## License
 MIT — see `LICENSE`.
 
 ## Contact
-Maintainer: Cristina Zamora Ballesteros (cristinazamoraballesteros@gmail.com) — issues and PRs welcome.
+Maintainer: Cristina Zamora Ballesteros (cristinazamoraballesteros@gmail.com).
