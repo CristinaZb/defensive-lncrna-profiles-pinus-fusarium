@@ -26,7 +26,7 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
   - Name: Fusarium circinatum strain FC072V
   - Organism: *Fusarium circinatum* (TaxID: 48490)
   - BioProject: **PRJNA716280** — Genome sequencing and assembly; scope: monoisolate; registered 2021-04-27
-  - Assembly accession: **GCA_018163655.1** (assembly level: Contig)
+  - Assembly accession: **GCA_018163655.1**
   - WGS master: **JAGGEA000000000**
   - BioSample: **SAMN18415966**
 
@@ -43,26 +43,24 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
 - [Identification of long non-coding RNAs](#identification-of-long-non-coding-rnas)
   - [Step 1: Identify lncRNAs with FEELnc](#step-1-identify-lncrnas-with-feelnc)
   - [Step 2: lncRNAs identification by coding potential assessment](#step-2-lncrnas-identification-by-coding-potential-assessment)
-- [Generate a fasta with the final lncRNAs](#generate-a-fasta-with-the-final-lncrnas)
+- [Generate a FASTA with the final lncRNAs](#generate-a-FASTA-with-the-final-lncrnas)
 - [Expression](#expression)
 
 ## **Quality control**
 
-We assessed read quality with FastQC on all raw FASTQ files (see [`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). 
+Assess read quality with FastQC on all raw FASTQ files (see [`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). 
 
 ## **Trimming**  
 
-Reads were trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC was re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary `*_2u.fastq.gz` (unpaired 2) files were found empty and were removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
-
-Trimmed pairs were then split by species into pr_ (_P. radiata_) and pp_ (_P. pinea_) sets.
+Reads are trimmed with Trimmomatic 0.38 using Illumina adapter removal and light head cropping (`ILLUMINACLIP:TruSeq3-PE.fa:2:30:10 HEADCROP:10`). Post-trim QC is re-run to confirm improvement ([`scripts/01_fastqc.sh`](scripts/01_fastqc.sh)). All auxiliary `*_2u.fastq.gz` (unpaired 2) files found empty might be removed. See [`scripts/02_trimming.sh`](scripts/02_trimming.sh)
 
 ## **Alignment (host / pathogen)**
 
-Trimmed reads were aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/03_hisat2_pine.sh`](scripts/03_hisat2_pine.sh) and [`scripts/03_hisat2_fc.sh`](scripts/03_hisat2_fc.sh); reference details in `data/DATA.md`). 
+Trimmed reads are aligned with HISAT2 (`--dta`, `stranded RF`) against the host genome (_Pinus taeda_ Ptaeda2.0) and, separately, against _Fusarium circinatum_ FC072V (see [`scripts/03_hisat2_pine.sh`](scripts/03_hisat2_pine.sh) and [`scripts/03_hisat2_fc.sh`](scripts/03_hisat2_fc.sh)). 
 
 ## **SAM processing**
 
-Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed with samtools. Intermediate SAM files were removed to save space. Host and pathogen BAMs are kept separately (one per sample).
+Alignment outputs (SAM) are converted to BAM, coordinate-sorted, and indexed with samtools. Intermediate SAM files might be removed to save space. Host and pathogen BAMs are kept separately (one per sample).
 
    - SAM to BAM → [`scripts/04_1_samtools_stgtie.sh`](scripts/04_1_samtools_stgtie.sh) 
    - Sorting BAM by name → [`scripts/04_2_samtools_namesort.sh`](scripts/04_2_samtools_namesort.sh)
@@ -72,7 +70,7 @@ Alignment outputs (SAM) were converted to BAM, coordinate-sorted, and indexed wi
 
 ##  **Pine assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-guided mode for the pine species (`Pita.2_01.gtf.gz`; [`scripts/05_1_stringtie_pita.sh`](scripts/05_1_stringtie_pita.sh)). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh).
+Per-sample BAMs are assembled with StringTie in reference-guided mode for the pine species (`Pita.2_01.gtf.gz`; [`scripts/05_1_stringtie_pita.sh`](scripts/05_1_stringtie_pita.sh)). Per-sample GTFs are then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh).
 
 Number of assembled transcripts in each GTF:
 
@@ -80,9 +78,9 @@ Number of assembled transcripts in each GTF:
 awk '$3=="transcript"' ${file}_transcripts.gtf | wc -l
 ```
 
-In order to get a fasta file with the sequences of the assembled transcripts of each pine, extract transcripts from the non-redundant GTF and convert to Fasta file using `gffread` and the reference genome: [`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)
+In order to get a FASTA file with the sequences of the assembled transcripts of each pine, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)
 
-Check the number of transcripts in the Fasta file:
+Check the number of transcripts in the FASTA file:
 
 ```bash
 grep '^>' transcripts_${spp}_consensus.fa | wc -l
@@ -92,7 +90,7 @@ Compare the assembled transcripts to the reference GTF using ``gffcompare`` to o
 
 Output:
 
-```bash
+```text
 ${spp}.missed_introns.gff
 ${spp}.R_missed.gff 
 ${spp}.tracking 
@@ -102,6 +100,7 @@ ${spp}.loci
 ${spp}.annotated.gtf 
 ${spp}.stats
 ```
+To better understand the outputs, visit ``https://github.com/gpertea/gffcompare``
 
 **Inspecting gffcompare outputs and defining the “known” vs “unknown” sets**
 
@@ -223,6 +222,14 @@ awk '$1 == "Non-coding" {print $3}' ${spp}_plek_predicted | wc -l
   
   (5) **FEELnc codpot module** → [`scripts/07_feelnc_codpot.sh`](scripts/07_feelnc_codpot.sh)
 
+Outputs are written to the `--outdir`:
+
+```text
+- `${spp}-lncRNA.gtf`  (lncRNA candidates)
+- `${spp}-mRNA.gtf`    (coding set for comparison)
+- `${spp}_RF.txt`      (coding-potential scores/labels)
+```
+
 We extract those labelled as non-coding (label--> 1 = coding; 0 = noncoding):
 
 ```bash
@@ -233,12 +240,12 @@ awk '$11 == "0" {print $1}' ${spp}_RF.txt > feelnc_${spp}_noncoding.txt
 
 The unannotated sequences (potential non-coding sequences) are located in these files:
 
-```bash
+```text
 frame_selection/GeneMarkS-T/processed/sequences_removed.fn
 final_results/final_unannotated.faa
 ```
 
-To obtain the Fasta sequences of the unannotated sequences:
+To obtain the FASTA sequences of the unannotated sequences:
   
 ```bash
 grep "^>" entap_outfiles/frame_selection/GeneMarkS-T/processed/sequences_removed.fnn | sed 's/^>//' > sequences_removed.txt
@@ -246,16 +253,85 @@ grep "^>" entap_outfiles/final_results/final_unannotated.faa | sed 's/^>//' > fi
 cat entap_outfiles/frame_selection/GeneMarkS-T/processed/sequences_removed.txt entap_outfiles/final_results/final_unannotated.txt > entap_outfiles/final_results/entap_${spp}_noncoding.txt
 ```
 
-## **Generate a fasta with the final lncRNAs**
+## **Build a consensus lncRNA set across predictors**
 
-Check that there are no printable characters in the text file and remove them.
+Each predictor (CNCI, CPAT, CPC2, PLEK, FEELnc codpot, EnTAP unannotated) has distinct biases. To be conservative, we define consensus lncRNAs as the intersection of the six non-coding sets per species. The resulting ID lists (${spp}_consensus_noncoding.txt) feed directly into the FASTA extraction step below.
+
+Inputs (per species):
+
+```text
+cnci_${spp}-noncoding.txt
+
+${spp}_cpat_noncoding.txt
+
+CPC2_${spp}-noncoding.txt
+
+${spp}_plek_noncoding.txt
+
+feelnc_${spp}_noncoding.txt
+
+entap_${spp}_noncoding.txt
+```
+
+```r
+# ---- Packages ----
+suppressPackageStartupMessages({
+  library(tidyverse)   # readr, dplyr, purrr
+})
+
+# Helper: read 1-column files robustly and normalize IDs
+read_ids <- function(path, strip_gt = FALSE) {
+  x <- read.table(path, header = FALSE, sep = "", quote = "", comment.char = "", stringsAsFactors = FALSE)
+  ids <- x[[1]]
+  if (strip_gt) ids <- gsub("^>", "", ids)
+  ids <- trimws(ids)
+  ids[nzchar(ids)]
+}
+
+consensus_from_files <- function(tag) {
+  # tag = "pira" or "pipi"
+  files <- list(
+    CNCI   = sprintf("cnci_%s-noncoding.txt", tag),
+    CPAT   = sprintf("%s_cpat_noncoding.txt", ifelse(tag=="pira","Pira","Pipi")),
+    CPC2   = sprintf("CPC2_%s-noncoding.txt", tag),
+    PLEK   = sprintf("%s_plek_noncoding.txt", tag),
+    FEELnc = sprintf("feelnc_%s_noncoding.txt", tag),
+    EnTAP  = sprintf("entap_%s_noncoding.txt", tag)
+  )
+
+  sets <- list(
+    CNCI   = read_ids(files$CNCI),
+    CPAT   = read_ids(files$CPAT),
+    CPC2   = read_ids(files$CPC2),
+    PLEK   = read_ids(files$PLEK, strip_gt = TRUE),  # PLEK headers sometimes start with '>'
+    FEELnc = read_ids(files$FEELnc),
+    EnTAP  = read_ids(files$EnTAP)
+  ) %>% lapply(unique)
+
+  # Intersection (consensus)
+  consensus <- Reduce(intersect, sets)
+  message(sprintf("[%s] sizes: CNCI=%d, CPAT=%d, CPC2=%d, PLEK=%d, FEELnc=%d, EnTAP=%d; CONSENSUS=%d",
+                  tag, lengths(sets)["CNCI"], lengths(sets)["CPAT"], lengths(sets)["CPC2"],
+                  lengths(sets)["PLEK"], lengths(sets)["FEELnc"], lengths(sets)["EnTAP"], length(consensus)))
+
+  out <- sprintf("%s_consensus_noncoding.txt", tag)
+  write.table(consensus, out, quote = FALSE, col.names = FALSE, row.names = FALSE)
+  invisible(list(consensus = consensus, sets = sets, out = out))
+}
+
+# ---- Run for both species ----
+res_pira <- consensus_from_files("pira")  # Pinus radiata
+res_pipi <- consensus_from_files("pipi")  # Pinus pinea
+```
+
+We next extract FASTA sequences only for transcripts present in the consensus lists created above (${spp}_consensus_noncoding.txt), using the species-specific transcript FASTA files (transcripts_${spp}_consensus.fa). Check that there are no printable characters in the text file and remove them:
 
 ```bash
 cat -A ${spp}_consensus_noncoding.txt
 dos2unix ${spp}_consensus_noncoding.txt
 ```
 
-Convert the Fasta format of the transcripts into single-line Fasta:
+Convert the FASTA format of the transcripts into single-line FASTA:
 
 ```bash
 awk '/^>/ {printf("%s%s\n",(NR>1?"\n":""),$0);next;} {printf("%s",$0);} END {printf("\n");}' transcripts_${spp}_consensus.fa > transcripts_${spp}_consensus.fa
@@ -283,11 +359,11 @@ To convert the GTFs with expression information into a quantification table, pre
 python2 prepDE.py -i sample_lst_gtf.txt -s ${spp}
 ```
 
-Now we can export the final table `transcript_count_matrix.csv` to RStudio.
+Now we export the final table `transcript_count_matrix.csv` to RStudio in order to carry out the differential expression analysis (DEA).
 
 ##  **Pathogen assembly**
 
-Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a fasta file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
+Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a FASTA file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
 
 Check the number of transcripts in the FASTA files:
 
@@ -300,6 +376,7 @@ grep '^>' fc_transcripts.fa | wc -l
 Build a curated GTF of protein-coding transcripts to (i) label/retain known coding loci, (ii) define the “known set” for downstream comparisons, and (iii) separate novel/unknown models (candidates for lncRNA).
 
 **Inputs:**
+
 - GTF of assembled pathogen transcripts ``fc_transcripts.gtf``
 - FASTA of assembled pathogen transcripts ``fc_transcripts.fa``
 - Pathogen genome FASTA ``Fusarium_circinatum_FC072V.fa``
@@ -320,28 +397,28 @@ grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
 ```
 
 Extract the transcripts that have been annotated:
+
 ```bash
 grep "^>" final_annotated.fnn > list_annotated.txt
 ```
+
 Change the format so that it is recognizable in the GTF: 
 Remove the “>” symbol at the beginning of the row, and add ‘transcript_id’, quotation marks, and “;” at the end.
+
 ```bash
 awk '{gsub(/^>/, ""); print "transcript_id \"" $0 "\";"}' list_annotated.txt > list_annotated_2.txt
 ```
-Keep only these transcripts:
+Keep only these transcripts and check:
+
 ```bash
 grep -Ff list_annotated_2.txt fc_transcripts.gtf > fc_known_transcripts.gtf
-```
-Check:
-```bash
 awk '$3=="transcript"' fc_known_transcripts.gtf | wc -l
 ```
 Now we use this new GTF to compare with the previous one.
 
-
 **2) Structural comparison against a “known transcripts” GTF**
 
-Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
+Contrast the assembled GTF against a reference known set using ``gffcompare`` to classify each transcript structurally (match/novel, class codes) and generate ``.tracking`` and ``.loci files``  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
 
 Number of loci:
 
@@ -355,26 +432,31 @@ Number of unique loci:
 awk '{print $1}' fusarium.loci | sort -u | wc -l
 ```
 
-The .tracking third column indicates closest reference match
+The ``.tracking`` third column indicates closest reference match
 
 ```bash
 awk '{print $4}' fusarium.tracking | sort | uniq -c
 ```
 
-**3) Create a new GTF without the known transcripts ("=")**
+**3) Create a new GTF without the known/coding transcripts ("=")**
+
 ```bash
 grep 'class_code \"=\"' fusarium.annotated.gtf | wc -l
 ```
+
 Usamos el archivo anterior: list_annotated_2.txt
+
 ```bash
 grep -vFf list_annotated_2.txt fusarium.annotated.gtf > unknown_fusarium.annotated.gtf
 ```
+
 Check:
 ```bash
 awk '$3=="transcript"' unknown_fusarium.annotated.gtf | wc -l 
 ```
 The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
 
+The process of pathogen lncRNA identification and expression assessment is similar to the one used for pine species, this time without using EnTAP as it was already used in previous step.
 
 ## How to cite
 If you use this code, please cite this repository and the related manuscript (when available).  
