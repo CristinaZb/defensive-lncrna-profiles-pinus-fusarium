@@ -1,37 +1,15 @@
-# Pinus spp.–Fusarium long non-coding RNAs
+# Long non-coding RNAs (lncRNAs) in the pathosystem *Pinus* spp.–*Fusarium circinatum*
 
-Reproducible dual RNA-seq analysis of defensive lncRNAs in *Pinus* challenged by *Fusarium circinatum*.  
-**Scope:** code-only repository (no raw data).
-
-## Table of Contents
-- [Data overview](#data-overview)
-  - [Raw reads (not included)](#raw-reads-not-included)
-  - [References (not included)](#references-not-included)
-- [How to cite](#how-to-cite)
-- [Bioinformatics pipeline](#bioinformatics-pipeline)
-  - [Quality control](#quality-control)
-  - [Trimming](#trimming)
-  - [Alignment (host / pathogen)](#alignment-host--pathogen)
-  - [SAM processing](#sam-processing)
-  - [Pine assembly](#pine-assembly)
-  - [Pathogen assembly](#pathogen-assembly)
-  - [Generate a protein-coding comparator GTF](#-generate-a-protein-coding-comparator-gtf)
-  - [Identification of long non-coding RNAs](#identification-of-long-non-coding-rnas)
-    - [Step 1: Identify lncRNAs with FEELnc](#step-1-identify-lncrnas-with-feelnc)
-    - [Step 2: lncRNAs identification by coding potential assessment](#step-2-lncrnas-identification-by-coding-potential-assessment)
-  - [Generate a fasta with the final lncRNAs](#generate-a-fasta-with-the-final-lncrnas)
-  - [Expression](#expression)
-- [License](#license)
-- [Contact](#contact)
+Long non-coding RNAs (lncRNAs) are emerging regulators of plant immunity, modulating gene expression through chromatin interactions, cis proximity to defense genes, RNA–protein decoys, and crosstalk with small RNAs. In forest trees, and particularly in conifers, their roles during pathogen challenge remain largely unresolved. This repository documents a reproducible dual RNA-seq workflow to profile defense-related lncRNAs in resistant *Pinus pinea* and susceptible *P. radiata* during infection by *Fusarium circinatum*, and to survey fungal lncRNAs expressed in planta during the pathogenesis. The code and configuration files provided here aim to enable transparent re-analysis and serve as a foundation for testable hypotheses on lncRNA-mediated regulation of pine resistance and fungal virulence.
 
 ## Data overview
 
-This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. Here ${spp} is a placeholder for the organism code (pp for _P. pinea_, pr for _P. radiata_).
+This repository is **code-only**. Raw sequencing files and large intermediates are **not** distributed here due to size and licensing constraints. The goal of this document is to record provenance and make the analysis reproducible. Here `${spp}` is a placeholder for the organism code (pp for _P. pinea_, pr for _P. radiata_).
 
 ## Raw reads (not included)
 
 - Type: paired-end RNA-Seq (dual RNA-seq: *Pinus* host + *Fusarium circinatum* pathogen).
-- Number of original files: 32 libraries (total size: ~135 GB).
+- Number of original files: 32 libraries.
 - Source: Raw reads have been deposited in the NCBI SRA Database under accession numbers SRR13737940-53 (BioProject PRJNA702546).
 
 ## References (not included)
@@ -52,11 +30,21 @@ This repository is **code-only**. Raw sequencing files and large intermediates a
   - WGS master: **JAGGEA000000000**
   - BioSample: **SAMN18415966**
 
-## How to cite
-If you use this code, please cite this repository and the related manuscript (when available).  
-*(A `CITATION.cff` file will be added for automated citation metadata.)*
-
 # Bioinformatics pipeline
+
+## Table of Contents
+- [Quality control](#quality-control)
+- [Trimming](#trimming)
+- [Alignment (host / pathogen)](#alignment-host--pathogen)
+- [SAM processing](#sam-processing)
+- [Pine assembly](#pine-assembly)
+- [Pathogen assembly](#pathogen-assembly)
+- [Generate a protein-coding comparator GTF](#generate-a-protein-coding-comparator-gtf)
+- [Identification of long non-coding RNAs](#identification-of-long-non-coding-rnas)
+  - [Step 1: Identify lncRNAs with FEELnc](#step-1-identify-lncrnas-with-feelnc)
+  - [Step 2: lncRNAs identification by coding potential assessment](#step-2-lncrnas-identification-by-coding-potential-assessment)
+- [Generate a fasta with the final lncRNAs](#generate-a-fasta-with-the-final-lncrnas)
+- [Expression](#expression)
 
 ## **Quality control**
 
@@ -92,15 +80,15 @@ Number of assembled transcripts in each GTF:
 awk '$3=="transcript"' ${file}_transcripts.gtf | wc -l
 ```
 
-In order to get a fasta file with the sequences of the assembled transcripts of each organism, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)
+In order to get a fasta file with the sequences of the assembled transcripts of each pine, extract transcripts from the non-redundant GTF and convert to Fasta file using `gffread` and the reference genome: [`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)
 
-Check the number of transcripts in the FASTA files:
+Check the number of transcripts in the Fasta file:
 
 ```bash
 grep '^>' transcripts_${spp}_consensus.fa | wc -l
 ```
 
-Compare the _de novo_ transcripts to the reference GTF using ``gffcompare`` to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See [`scripts/05_4_gffcompare_pine.sh`](scripts/05_4_gffcompare_pine.sh)
+Compare the assembled transcripts to the reference GTF using ``gffcompare`` to obtain class codes (e.g., =, u, x, i) for downstream lncRNA filtering. See [`scripts/05_4_gffcompare_pine.sh`](scripts/05_4_gffcompare_pine.sh)
 
 Output:
 
@@ -115,138 +103,72 @@ ${spp}.annotated.gtf
 ${spp}.stats
 ```
 
-•	How many loci do we have?
+**Inspecting gffcompare outputs and defining the “known” vs “unknown” sets**
+
+These quick checks help verify scale and composition before extracting novel models.
+
+1) How many loci are represented?
+Each line in ``${spp}.loci`` corresponds to a locus; counting unique locus IDs gives the total genomic loci covered by the assembly:
+
 ```bash
 awk '{print $1}' ${spp}.loci | sort | uniq | wc -l
 ```
-•	${spp}.tracking --> Third column indicates the information of the most close reference annotation transcript
+
+2) What do the tracking codes look like?
+``${spp}.tracking`` links each assembled transcript to its closest reference counterpart. The third printed field carries the class code or the mapping summary. This distribution is a sanity check (e.g., many “u” = intergenic, some “i/x” = intronic/antisense, etc.).
+
 ```bash
 awk '{print $4}' ${spp}.tracking | sort | uniq -c
 ```
-•	How many transcripts do we have?
+
+3) How many transcripts were tracked overall?
+A coarse count of records in ``*.tracking`` (one per assembled transcript).
+
 ```bash
 wc -l ${spp}.tracking
 ```
-•	How many transcripts do we have with a full match "="?
+
+4) How many transcripts are exact matches to the reference? ``(class_code "=")``
+Exact matches are our conservative proxy for known protein-coding models when building the comparator set.
+
 ```bash
 awk '$4=="="' ${spp}.tracking | wc -l
 ```
 
-Generate a file with the IDs of all known transcripts (= coding transcripts) and then delete them from the gtf:
+We now create a list of transcript IDs that gffcompare labeled as ``class_code "="`` in the annotated GTF, and remove them to retain only novel/unknown models (the input for lncRNA calling).
+
+Count known (“=”) in the annotated GTF:
 
 ```bash
 grep 'class_code \"=\"' ${spp}.annotated.gtf | wc -l
 ```
 
-Extract the fist field (until ;) from the column 9:
+Extraction (assumes ``transcript_id`` is the first attribute in column 9):
+
 ```bash
-grep 'class_code \"=\"' ${spp}.annotated.gtf | cut -d$'\t' -f9 | cut -d ";" -f1 | uniq | sed 's/$/;/' > ${spp}_known_list.txt
+grep 'class_code "=";' ${spp}.annotated.gtf \
+  | cut -f9 \
+  | cut -d';' -f1 \
+  | uniq \
+  | sed 's/$/;/' > ${spp}_known_list.txt
 ```
 
-Remove the known transcripts (= coding transcripts) and check:
+Remove the known (“=”) transcripts and verify the remaining count:
+
 ```bash
-grep -vFf ${spp}_known_list.txt ${spp}.annotated.gtf > unknown_${spp}.annotated.gtf 
+grep -vFf ${spp}_known_list.txt ${spp}.annotated.gtf > unknown_${spp}.annotated.gtf
 awk '$3=="transcript"' unknown_${spp}.annotated.gtf | wc -l
 ```
 
 The file for lncRNAs identification is: _unknown_${spp}.annotated.gtf_
 
-##  **Pathogen assembly**
-
-Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a fasta file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
-
-Check the number of transcripts in the FASTA files:
-
-```bash
-grep '^>' fc_transcripts.fa | wc -l
-```
-
-**>> Generate a protein-coding comparator GTF**
-
-Build a curated GTF of protein-coding transcripts to (i) label/retain known coding loci, (ii) define the “known set” for downstream comparisons, and (iii) separate novel/unknown models (candidates for lncRNA).
-
-**Inputs:**
-- GTF of assembled pathogen transcripts ``fc_transcripts.gtf``
-- FASTA of assembled pathogen transcripts ``fc_transcripts.fa``
-- Pathogen genome FASTA ``Fusarium_circinatum_FC072V.fa``
-- A reference known transcripts GTF for F. circinatum (e.g., curated/annotated set) → fc_known_transcripts.gtf
-
-**Outputs:**
-unknown_fusarium.annotated.gtf → GTF of novel/unknown transcripts (used later for lncRNA identification)
-
-**1) Functional annotation with EnTAP**
-
-Annotation of pathogen transcripts to identify those with functional hits/assignments → [`scripts/05_4_entap_fc.sh`](scripts/05_4_entap_fc.sh)
-
-Get first functional view of what is likely coding/known vs unknown:
-
-```bash
-grep -c '^>' entap_outfiles/final_results/final_annotated.fnn
-grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
-```
-
-Extract the transcripts that have been annotated:
-```bash
-grep "^>" final_annotated.fnn > list_annotated.txt
-```
-Change the format so that it is recognizable in the GTF: 
-Remove the “>” symbol at the beginning of the row, and add ‘transcript_id’, quotation marks, and “;” at the end.
-```bash
-awk '{gsub(/^>/, ""); print "transcript_id \"" $0 "\";"}' list_annotated.txt > list_annotated_2.txt
-```
-Keep only these transcripts:
-```bash
-grep -Ff list_annotated_2.txt fc_transcripts.gtf > fc_known_transcripts.gtf
-```
-Check:
-```bash
-awk '$3=="transcript"' fc_known_transcripts.gtf | wc -l
-```
-Now we use this new GTF to compare with the previous one.
-
-
-**2) Structural comparison against a “known transcripts” GTF**
-
-Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
-
-Number of loci:
-
-```bash
-awk '{print $1}' fusarium.loci | wc -l 
-```
-
-Number of unique loci:
-
-```bash
-awk '{print $1}' fusarium.loci | sort -u | wc -l
-```
-
-The .tracking third column indicates closest reference match
-
-```bash
-awk '{print $4}' fusarium.tracking | sort | uniq -c
-```
-
-**3) Create a new GTF without the known transcripts ("=")**
-```bash
-grep 'class_code \"=\"' fusarium.annotated.gtf | wc -l
-```
-Usamos el archivo anterior: list_annotated_2.txt
-```bash
-grep -vFf list_annotated_2.txt fusarium.annotated.gtf > unknown_fusarium.annotated.gtf
-```
-Check:
-```bash
-awk '$3=="transcript"' unknown_fusarium.annotated.gtf | wc -l 
-```
-The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
-
-
 ## **Identification of long non-coding RNAs**  
 
-### Step 1: Identify lncRNAs with FEELnc → [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)  
+### Step 1: Identify lncRNAs with FEELnc  
 
-Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts. After that, the sequences of the resulting transcripts (potential lncRNAs) were extracted `Gffread` ([`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)).
+Identify lncRNAs using the filter module of the `FEELnc` tool by removing the short (< 200 bp) and single-exon transcripts (see [`scripts/06_feelnc_filter.sh`](scripts/06_feelnc_filter.sh)). After that, the sequences of the resulting transcripts (potential lncRNAs) must be extracted `Gffread` ([`scripts/05_3_gffread_pine.sh`](scripts/05_3_gffread_pine.sh)).
+
+The file for coding potential assessment is: candidate_pira-lncRNA.fa
 
 ### Step 2: lncRNAs identification by coding potential assessment
    
@@ -357,6 +279,101 @@ python2 prepDE.py -i sample_lst_gtf.txt -s ${spp}
 ```
 
 Now we can export the final table `transcript_count_matrix.csv` to RStudio.
+
+##  **Pathogen assembly**
+
+Per-sample BAMs were assembled with StringTie in reference-free mode for the pathogen ([`scripts/05_1_stringtie_fc.sh`](scripts/05_1_stringtie_fc.sh). Per-sample GTFs were then merged into a non-redundant consensus using `stringtie --merge` [`scripts/05_2_stringtie_merge.sh`](scripts/05_2_stringtie_merge.sh) In order to get a fasta file with the sequences of the assembled transcripts of the pathogen, extract transcripts from the non-redundant GTF and convert to FASTA file using `gffread` and the reference genome: [`scripts/05_3_gffread_fc.sh`](scripts/05_3_gffread_fc.sh)
+
+Check the number of transcripts in the FASTA files:
+
+```bash
+grep '^>' fc_transcripts.fa | wc -l
+```
+
+**>> Generate a protein-coding comparator GTF**
+
+Build a curated GTF of protein-coding transcripts to (i) label/retain known coding loci, (ii) define the “known set” for downstream comparisons, and (iii) separate novel/unknown models (candidates for lncRNA).
+
+**Inputs:**
+- GTF of assembled pathogen transcripts ``fc_transcripts.gtf``
+- FASTA of assembled pathogen transcripts ``fc_transcripts.fa``
+- Pathogen genome FASTA ``Fusarium_circinatum_FC072V.fa``
+- A reference known transcripts GTF for F. circinatum (e.g., curated/annotated set) → fc_known_transcripts.gtf
+
+**Outputs:**
+unknown_fusarium.annotated.gtf → GTF of novel/unknown transcripts (used later for lncRNA identification)
+
+**1) Functional annotation with EnTAP**
+
+Annotation of pathogen transcripts to identify those with functional hits/assignments → [`scripts/05_4_entap_fc.sh`](scripts/05_4_entap_fc.sh)
+
+Get first functional view of what is likely coding/known vs unknown:
+
+```bash
+grep -c '^>' entap_outfiles/final_results/final_annotated.fnn
+grep -c '^>' entap_outfiles/final_results/final_unannotated.fnn
+```
+
+Extract the transcripts that have been annotated:
+```bash
+grep "^>" final_annotated.fnn > list_annotated.txt
+```
+Change the format so that it is recognizable in the GTF: 
+Remove the “>” symbol at the beginning of the row, and add ‘transcript_id’, quotation marks, and “;” at the end.
+```bash
+awk '{gsub(/^>/, ""); print "transcript_id \"" $0 "\";"}' list_annotated.txt > list_annotated_2.txt
+```
+Keep only these transcripts:
+```bash
+grep -Ff list_annotated_2.txt fc_transcripts.gtf > fc_known_transcripts.gtf
+```
+Check:
+```bash
+awk '$3=="transcript"' fc_known_transcripts.gtf | wc -l
+```
+Now we use this new GTF to compare with the previous one.
+
+
+**2) Structural comparison against a “known transcripts” GTF**
+
+Contrast the assembled GTF against a reference known set using gffcompare to classify each transcript structurally (match/novel, class codes) and generate .tracking and .loci files  →  [`scripts/05_5_gffcompare_fc.sh`](scripts/05_5_gffcompare_fc.sh)
+
+Number of loci:
+
+```bash
+awk '{print $1}' fusarium.loci | wc -l 
+```
+
+Number of unique loci:
+
+```bash
+awk '{print $1}' fusarium.loci | sort -u | wc -l
+```
+
+The .tracking third column indicates closest reference match
+
+```bash
+awk '{print $4}' fusarium.tracking | sort | uniq -c
+```
+
+**3) Create a new GTF without the known transcripts ("=")**
+```bash
+grep 'class_code \"=\"' fusarium.annotated.gtf | wc -l
+```
+Usamos el archivo anterior: list_annotated_2.txt
+```bash
+grep -vFf list_annotated_2.txt fusarium.annotated.gtf > unknown_fusarium.annotated.gtf
+```
+Check:
+```bash
+awk '$3=="transcript"' unknown_fusarium.annotated.gtf | wc -l 
+```
+The file for lncRNAs identification is: _unknown_fusarium.annotated.gtf_
+
+
+## How to cite
+If you use this code, please cite this repository and the related manuscript (when available).  
+*(A `CITATION.cff` file will be added for automated citation metadata.)*
 
 ## License
 MIT — see `LICENSE`.
